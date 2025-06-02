@@ -1,6 +1,6 @@
 {
   "name": "chat",
-  "module": "index.ts",
+  "module": "server/index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {
@@ -10,8 +10,8 @@
     "typescript": "^5"
   },
   "scripts": {
-    "start": "bun index.ts",
-    "dev": "bun --watch index.ts"
+    "start": "bun iserver/ndex.ts",
+    "dev": "bun --watch server/index.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.0",
