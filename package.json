@@ -10,7 +10,7 @@
     "typescript": "^5"
   },
   "scripts": {
-    "start": "bun iserver/ndex.ts",
+    "start": "bun server/ndex.ts",
     "dev": "bun --watch server/index.ts"
   },
   "dependencies": {
