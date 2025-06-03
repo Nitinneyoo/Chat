@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { api } from "@/lib/api";
+
 
 export const Route = createFileRoute("/create-expenses")({
   component: CreateExpenses,
@@ -13,9 +15,13 @@ function CreateExpenses() {
   const form = useForm({
     defaultValues: {
       title: "",
-      amount: "",
+      amount: 0,
     },
     onSubmit: async ({ value }) => {
+      const res = await api.expenses.$post({ json: value })
+
+      if (!res.ok)
+        throw new Error("Server Error")
       // Do something with form data
       console.log(value);
     },
@@ -43,14 +49,13 @@ function CreateExpenses() {
                   !value
                     ? "Title is required"
                     : value.length < 3
-                      ? "Value must be at least 3 characters"
+                      ? "Title must be at least 3 characters"
                       : undefined,
                 onChangeAsyncDebounceMs: 500,
                 onChangeAsync: async ({ value }) => {
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                  // await new Promise((resolve) => setTimeout(resolve, 1000));
                   return (
-                    value.includes("error") &&
-                    'No "error" allowed in Value'
+                    value.includes("error") && 'No "error" allowed in title'
                   );
                 },
               }}
@@ -68,12 +73,7 @@ function CreateExpenses() {
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
-                    <Button
-                      type="submit"
-                      className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Create Expense
-                    </Button>
+
                     {field.state.meta.errors ? (
                       <div className="text-red-500 text-sm mt-1">
                         {field.state.meta.errors.join(", ")}
@@ -83,6 +83,53 @@ function CreateExpenses() {
                 );
               }}
             />
+            <form.Field
+              name="amount"
+              validators={{
+                onChange: ({ value }) =>
+                  value === undefined || value === null
+                    ? "Value is required"
+                    : value <= 0
+                      ? "Value must be greater than 0"
+                      : undefined,
+                onChangeAsyncDebounceMs: 500,
+                onChangeAsync: async () => undefined,
+              }}
+              // biome-ignore lint/correctness/noChildrenProp: <explanation>
+              children={(field) => {
+                // Avoid hasty abstractions. Render props are great!
+                return (
+                  <>
+                    <Label htmlFor={field.name}>Amount</Label>
+                    <Input
+                      id={field.name}
+                      placeholder="Enter Amount"
+                      className="w-full"
+                      value={field.state.value?.toString() || ""}
+                      type="number"
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(Number(e.target.value))}
+                    />
+                    {field.state.meta.errors ? (
+                      <div className="text-red-500 text-sm mt-1">
+                        {field.state.meta.errors.join(", ")}
+                      </div>
+                    ) : null}
+                  </>
+                );
+              }}
+            />
+            <div className="flex justify-center items-center">
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting]}
+                // biome-ignore lint/correctness/noChildrenProp: <explanation>
+                children={([canSubmit, isSubmitting]) => (
+                  <Button type="submit" disabled={!canSubmit} className="mt-4">
+                    {isSubmitting ? "..." : "Submit"}
+                  </Button>
+                )}
+              />
+            </div>
           </form>
         </div>
       </Card>

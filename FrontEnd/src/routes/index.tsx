@@ -40,6 +40,7 @@ const Index = () => {
 
   if (isFetching) return "Fetching ...";
 
+  // biome-ignore lint/style/useTemplate: <explanation>
   if (error) return "an error has occurred : " + error.message;
 
   return (
