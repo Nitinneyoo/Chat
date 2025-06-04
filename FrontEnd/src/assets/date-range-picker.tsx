@@ -141,7 +141,14 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
         const [selectedPreset, setSelectedPreset] = useState<string | undefined>(
             undefined,
         );
-        const [defaultMonth, setDefaultMonth] = useState<Date>(new Date());
+        const [month, setMonth] = useState(() => {
+            const currentDate = new Date();
+            // For dual-month view, start one month back on larger screens
+            if (typeof window !== 'undefined' && window.innerWidth >= 960) {
+                return new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+            }
+            return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        });
         const [isSmallScreen, setIsSmallScreen] = useState(
             typeof window !== "undefined" ? window.innerWidth < 960 : false,
         );
@@ -454,12 +461,21 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                                             }
                                         }}
                                         selected={range}
-                                        numberOfMonths={1}
-                                        defaultMonth={defaultMonth}
-                                        showOutsideDays
+                                        numberOfMonths={isSmallScreen ? 1 : 2}
+                                        month={month}
+                                        onMonthChange={setMonth}
+                                        // defaultMonth={
+                                        //     new Date(
+                                        //         new Date().setMonth(
+                                        //             new Date().getMonth() - (isSmallScreen ? 0 : 1)
+                                        //         )
+                                        //     )
+                                        // }
+                                        showOutsideDays={false}
                                         toDate={new Date()}
                                         fixedWeeks
-                                        disabled={(date) => {
+                                        // weekStartsOn={1}
+                                        disabled={(date: Date) => {
                                             const today = new Date();
                                             today.setHours(23, 59, 59, 999);
                                             return date > today;

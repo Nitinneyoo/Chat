@@ -8,6 +8,7 @@ export const Route = createFileRoute('/about')({
 
 function About() {
   const [dateRange, setDateRange] = useState<{ from: Date; to?: Date }>(() => {
+    s
     const today = new Date()
     today.setHours(0, 0, 0, 0)  // Reset time to start of day
     return { from: today }
