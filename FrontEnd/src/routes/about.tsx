@@ -8,11 +8,11 @@ export const Route = createFileRoute('/about')({
 
 function About() {
   const [dateRange, setDateRange] = useState<{ from: Date; to?: Date }>(() => {
-    s
     const today = new Date()
-    today.setHours(0, 0, 0, 0)  // Reset time to start of day
+    today.setHours(0, 0, 0, 0)
     return { from: today }
   })
+
   const [error, setError] = useState<string | null>(null)
 
   const handleDateChange = (values: { range: { from: Date; to?: Date }; rangeCompare?: { from: Date; to?: Date } }) => {
@@ -25,10 +25,14 @@ function About() {
   }
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Using div with ARIA role and label for better semantics
-    <div className="p-4 text-foreground flex flex-col max-w-md mx-auto" role="region" aria-label="About page content">
-      <h1 className="text-xl font-semibold mb-4">About Page</h1>
-      <div className="w-full">
+    <div
+      className="p-6 md:p-8 bg-card rounded-xl shadow-md text-foreground flex flex-col max-w-xl mx-auto mt-6 border border-border"
+      role="region"
+      aria-label="About page content"
+    >
+      <h1 className="text-2xl font-bold mb-6 text-center">About Page</h1>
+
+      <div className="w-full space-y-3">
         <DateRangePicker
           onUpdate={handleDateChange}
           initialDateFrom={dateRange.from}
@@ -38,8 +42,9 @@ function About() {
           showCompare={false}
           aria-label="Select date range"
         />
+
         {error && (
-          <p className="text-red-500 text-sm mt-2" role="alert">
+          <p className="text-red-500 text-sm mt-1" role="alert">
             {error}
           </p>
         )}

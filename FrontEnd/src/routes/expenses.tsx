@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { api } from "@/lib/api";
 import { useState } from "react";
 import {
   Table,
@@ -12,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { api } from "@/lib/api";
 import {
   Sheet,
   SheetContent,
@@ -20,63 +19,64 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonRow } from "@/components/SkeletonRow";
+import { useQuery } from "@tanstack/react-query";
+
+type Expenses = {
+  id: number;
+  amount: number;
+  title: string;
+};
 
 const getAllExpenses = async () => {
-  await new Promise((r) => setTimeout(r, 10))
+  await new Promise((r) => setTimeout(r, 10));
   const res = await api.expenses.$get();
 
   if (!res.ok) {
     throw new Error("Server Error");
   }
-  const data = await res.json();
-  return data;
+  return await res.json();
 };
 
 const Expenses = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedExpense, setSelectedExpense] = useState<any>(null);
+  const [selectedExpense, setSelectedExpense] = useState<Expenses | null>(null);
+
   const { data, error, isFetching } = useQuery({
     queryKey: ["get-all-expense"],
     queryFn: getAllExpenses,
   });
 
-  // biome-ignore lint/style/useTemplate: <explanation>
-  if (error) return "an error has occurred : " + error.message;
+  if (error) return <p className="text-red-500 text-center">{error.message}</p>;
 
   return (
-    <div className="p-2 max-w-7xl m-auto">
+    <div className="max-w-6xl mx-auto p-4">
       <Sheet>
-        <Table>
-          <TableCaption>A list of your recent invoices.</TableCaption>
+        <Table className="rounded-md overflow-hidden shadow-md border border-border bg-card">
+          <TableCaption className="text-sm py-2 text-muted-foreground">
+            A list of your recent expenses.
+          </TableCaption>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Invoice</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+            <TableRow className="bg-muted/40">
+              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead className="text-right">Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isFetching ? (
-              <>
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-                <SkeletonRow />
-              </>
+              Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
             ) : (
-              data?.expenses.map((expense) => (
+              data?.expenses.map((expense: Expenses) => (
                 <SheetTrigger key={expense.id} asChild>
                   <TableRow
-                    className="cursor-pointer transition-colors hover:bg-muted/50 active:bg-muted"
+                    className="cursor-pointer transition-all hover:bg-muted/50"
                     onClick={() => setSelectedExpense(expense)}
                   >
                     <TableCell className="font-medium">{expense.id}</TableCell>
                     <TableCell>{expense.title}</TableCell>
-                    <TableCell>{expense.amount}</TableCell>
+                    <TableCell>${expense.amount.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       ${expense.amount.toFixed(2)}
                     </TableCell>
@@ -85,39 +85,47 @@ const Expenses = () => {
               ))
             )}
           </TableBody>
-          <TableFooter>
+          <TableFooter className="bg-muted/40">
             <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
-              <TableCell className="text-right">
+              <TableCell colSpan={3} className="font-semibold">
+                Total
+              </TableCell>
+              <TableCell className="text-right font-medium">
                 {isFetching ? (
-                  <Skeleton className="h-2 w-10 ml-auto" />
+                  <Skeleton className="h-4 w-12 ml-auto" />
                 ) : (
                   `$${data?.expenses
-                    .reduce((sum, expense) => sum + expense.amount, 0)
+                    .reduce((sum: number, e: Expenses) => sum + e.amount, 0)
                     .toFixed(2)}`
                 )}
               </TableCell>
             </TableRow>
           </TableFooter>
         </Table>
-        <SheetContent className="lg:max-w-[700px] w-full">
+
+        <SheetContent className="lg:max-w-[600px] w-full bg-background border-l border-border">
           <SheetHeader>
-            <SheetTitle>Expense Details</SheetTitle>
+            <SheetTitle className="text-xl font-semibold text-foreground">
+              Expense Details
+            </SheetTitle>
             <SheetDescription>
               {isFetching ? (
                 <div className="mt-4 space-y-2">
                   <p>
-                    <strong>Invoice ID:</strong> <Skeleton className="h-4 w-24 inline-block" />
+                    <strong>Invoice ID:</strong>{" "}
+                    <Skeleton className="h-4 w-24 inline-block" />
                   </p>
                   <p>
-                    <strong>Title:</strong> <Skeleton className="h-4 w-32 inline-block" />
+                    <strong>Title:</strong>{" "}
+                    <Skeleton className="h-4 w-32 inline-block" />
                   </p>
                   <p>
-                    <strong>Amount:</strong> <Skeleton className="h-4 w-20 inline-block" />
+                    <strong>Amount:</strong>{" "}
+                    <Skeleton className="h-4 w-20 inline-block" />
                   </p>
                 </div>
-              ) : selectedExpense && (
-                <div className="mt-4 space-y-2">
+              ) : selectedExpense ? (
+                <div className="mt-4 space-y-2 text-foreground">
                   <p>
                     <strong>Invoice ID:</strong> {selectedExpense.id}
                   </p>
@@ -125,10 +133,11 @@ const Expenses = () => {
                     <strong>Title:</strong> {selectedExpense.title}
                   </p>
                   <p>
-                    <strong>Amount:</strong> $
-                    {selectedExpense.amount.toFixed(2)}
+                    <strong>Amount:</strong> ${selectedExpense.amount.toFixed(2)}
                   </p>
                 </div>
+              ) : (
+                <p className="mt-4 text-muted-foreground">Select an expense to view details.</p>
               )}
             </SheetDescription>
           </SheetHeader>
@@ -137,6 +146,7 @@ const Expenses = () => {
     </div>
   );
 };
+
 export const Route = createFileRoute("/expenses")({
   component: Expenses,
 });
